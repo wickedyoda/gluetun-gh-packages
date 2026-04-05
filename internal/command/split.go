@@ -61,6 +61,10 @@ func split(command string) (words []string, err error) {
 	return words, nil
 }
 
+func Split(command string) (words []string, err error) {
+	return split(command)
+}
+
 // WARNING: buffer must be cleared before calling this function.
 func splitWord(input string, startIndex int, buffer *bytes.Buffer) (
 	word string, newStartIndex int, err error,

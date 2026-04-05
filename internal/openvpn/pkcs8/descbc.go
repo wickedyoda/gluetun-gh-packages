@@ -1,14 +1,16 @@
 package pkcs8
 
 import (
-	"bytes"
 	"crypto/cipher"
 	"crypto/des" //nolint:gosec
 	"encoding/asn1"
+	"errors"
 	"fmt"
 
 	pkcs8lib "github.com/youmark/pkcs8"
 )
+
+var ErrEncryptDESCBCUnsupported = errors.New("encrypting private keys with DES-CBC is unsupported")
 
 func init() { //nolint:gochecknoinits
 	pkcs8lib.RegisterCipher(oidDESCBC, newCipherDESCBCBlock)
@@ -33,18 +35,7 @@ func (c cipherDESCBC) OID() asn1.ObjectIdentifier {
 }
 
 func (c cipherDESCBC) Encrypt(key, iv, plaintext []byte) ([]byte, error) {
-	block, err := des.NewCipher(key) //nolint:gosec
-	if err != nil {
-		return nil, fmt.Errorf("creating DES cipher: %w", err)
-	}
-	blockEncrypter := cipher.NewCBCEncrypter(block, iv)
-	paddingLen := block.BlockSize() - (len(plaintext) % block.BlockSize())
-	ciphertext := make([]byte, len(plaintext)+paddingLen)
-	copy(ciphertext, plaintext)
-	copy(ciphertext[len(plaintext):],
-		bytes.Repeat([]byte{byte(paddingLen)}, paddingLen))
-	blockEncrypter.CryptBlocks(ciphertext, ciphertext)
-	return ciphertext, nil
+	return nil, ErrEncryptDESCBCUnsupported
 }
 
 func (c cipherDESCBC) Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
