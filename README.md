@@ -39,6 +39,9 @@ Lightweight swiss-army-knife-like VPN client to multiple VPN service providers
 ## Quick links
 
 - [Setup](#setup)
+- [Docker Compose example](./docker-compose.yml)
+- [Environment template](./.env.example)
+- [Local wiki](./wiki/README.md)
 - [Features](#features)
 - Problem?
   - Check the Wiki [common errors](https://github.com/qdm12/gluetun-wiki/tree/main/errors) and [faq](https://github.com/qdm12/gluetun-wiki/tree/main/faq)
@@ -85,55 +88,33 @@ Lightweight swiss-army-knife-like VPN client to multiple VPN service providers
 
 🎉 There are now instructions specific to each VPN provider with examples to help you get started as quickly as possible!
 
-Go to the [Wiki](https://github.com/qdm12/gluetun-wiki)!
+Go to the upstream [Wiki](https://github.com/qdm12/gluetun-wiki) for provider-specific documentation and use the local [wiki](./wiki/README.md) in this repository for the bundled Compose workflow.
 
 [🐛 Found a bug in the Wiki?!](https://github.com/qdm12/gluetun-wiki/issues/new/choose)
 
-Here's a docker-compose.yml for the laziest:
+This repository now includes a ready-to-run [docker-compose.yml](./docker-compose.yml) and a matching [.env.example](./.env.example).
 
-```yml
----
-services:
-  gluetun:
-    image: qmcgaw/gluetun
-    # container_name: gluetun
-    # line above must be uncommented to allow external containers to connect.
-    # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/connect-a-container-to-gluetun.md#external-container-to-gluetun
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    ports:
-      - 8888:8888/tcp # HTTP proxy
-      - 8388:8388/tcp # Shadowsocks
-      - 8388:8388/udp # Shadowsocks
-    volumes:
-      - /yourpath:/gluetun
-    environment:
-      # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
-      - VPN_SERVICE_PROVIDER=ivpn
-      - VPN_TYPE=openvpn
-      # OpenVPN:
-      - OPENVPN_USER=
-      - OPENVPN_PASSWORD=
-      # Wireguard:
-      # - VPN_TYPE=wireguard
-      # - WIREGUARD_PRIVATE_KEY=wOEI9rqqbDwnN8/Bpp22sVz48T71vJ4fYmFWujulwUU=
-      # - WIREGUARD_ADDRESSES=10.64.222.21/32
-      # Tunnel healthcheck and auto-restart
-      - HEALTH_RESTART_VPN=on
-      - HEALTH_TARGET_ADDRESSES=cloudflare.com:443,github.com:443
-      # Optional: override the small healthcheck used between full 5 minute tunnel checks
-      # - HEALTH_SMALL_CHECK_TYPE=icmp
-      # - HEALTH_ICMP_TARGET_IPS=1.1.1.1,8.8.8.8
-      # Timezone for accurate log times
-      - TZ=
-      # Server list updater
-      # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
-      - UPDATER_PERIOD=
+Quick start:
+
+```bash
+cp .env.example .env
+docker compose config
+docker compose up -d
 ```
 
-The healthcheck runs a full tunnel check every 5 minutes and restarts the VPN if it fails.
+The bundled Compose setup:
+
+- uses current environment variable names
+- defaults to IP-based health targets to avoid DNS bootstrap loops
+- enables `NET_RAW` because the default small health check uses ICMP
+- publishes the control server, HTTP proxy, and Shadowsocks ports
+
+Detailed walkthroughs are in the local wiki:
+
+- [Setup and Docker Compose](./wiki/setup-and-compose.md)
+- [Environment Variables](./wiki/environment-variables.md)
+- [Health Checks and DNS](./wiki/healthchecks-and-dns.md)
+- [Operations and Troubleshooting](./wiki/operations-and-troubleshooting.md)
 
 🆕 Image also available as `ghcr.io/qdm12/gluetun`
 

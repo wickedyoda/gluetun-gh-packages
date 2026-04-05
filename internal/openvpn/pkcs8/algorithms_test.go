@@ -103,3 +103,14 @@ func Test_getEncryptionAlgorithmOid(t *testing.T) {
 		})
 	}
 }
+
+func Test_cipherDESCBC_Encrypt(t *testing.T) {
+	t.Parallel()
+
+	cipher := newCipherDESCBCBlock()
+
+	ciphertext, err := cipher.Encrypt([]byte("12345678"), []byte("12345678"), []byte("plaintext"))
+
+	assert.Nil(t, ciphertext)
+	assert.ErrorIs(t, err, ErrEncryptDESCBCUnsupported)
+}

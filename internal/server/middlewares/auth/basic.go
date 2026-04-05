@@ -1,18 +1,19 @@
 package auth
 
 import (
-	"crypto/sha256"
 	"crypto/subtle"
 	"net/http"
 )
 
 type basicAuthMethod struct {
-	authDigest [32]byte
+	username []byte
+	password []byte
 }
 
 func newBasicAuthMethod(username, password string) *basicAuthMethod {
 	return &basicAuthMethod{
-		authDigest: sha256.Sum256([]byte(username + password)),
+		username: []byte(username),
+		password: []byte(password),
 	}
 }
 
@@ -23,7 +24,8 @@ func (a *basicAuthMethod) equal(other authorizationChecker) bool {
 	if !ok {
 		return false
 	}
-	return a.authDigest == otherBasicMethod.authDigest
+	return subtle.ConstantTimeCompare(a.username, otherBasicMethod.username) == 1 &&
+		subtle.ConstantTimeCompare(a.password, otherBasicMethod.password) == 1
 }
 
 func (a *basicAuthMethod) isAuthorized(headers http.Header, request *http.Request) bool {
@@ -32,6 +34,6 @@ func (a *basicAuthMethod) isAuthorized(headers http.Header, request *http.Reques
 		headers.Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 		return false
 	}
-	requestAuthDigest := sha256.Sum256([]byte(username + password))
-	return subtle.ConstantTimeCompare(a.authDigest[:], requestAuthDigest[:]) == 1
+	return subtle.ConstantTimeCompare([]byte(username), a.username) == 1 &&
+		subtle.ConstantTimeCompare([]byte(password), a.password) == 1
 }

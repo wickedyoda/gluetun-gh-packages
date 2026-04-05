@@ -1,18 +1,17 @@
 package auth
 
 import (
-	"crypto/sha256"
 	"crypto/subtle"
 	"net/http"
 )
 
 type apiKeyMethod struct {
-	apiKeyDigest [32]byte
+	apiKey []byte
 }
 
 func newAPIKeyMethod(apiKey string) *apiKeyMethod {
 	return &apiKeyMethod{
-		apiKeyDigest: sha256.Sum256([]byte(apiKey)),
+		apiKey: []byte(apiKey),
 	}
 }
 
@@ -23,7 +22,7 @@ func (a *apiKeyMethod) equal(other authorizationChecker) bool {
 	if !ok {
 		return false
 	}
-	return a.apiKeyDigest == otherTokenMethod.apiKeyDigest
+	return subtle.ConstantTimeCompare(a.apiKey, otherTokenMethod.apiKey) == 1
 }
 
 func (a *apiKeyMethod) isAuthorized(_ http.Header, request *http.Request) bool {
@@ -31,6 +30,5 @@ func (a *apiKeyMethod) isAuthorized(_ http.Header, request *http.Request) bool {
 	if xAPIKey == "" {
 		xAPIKey = request.URL.Query().Get("api_key")
 	}
-	xAPIKeyDigest := sha256.Sum256([]byte(xAPIKey))
-	return subtle.ConstantTimeCompare(xAPIKeyDigest[:], a.apiKeyDigest[:]) == 1
+	return subtle.ConstantTimeCompare([]byte(xAPIKey), a.apiKey) == 1
 }

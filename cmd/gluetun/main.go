@@ -516,16 +516,17 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 
 	select {
 	case <-ctx.Done():
-		stoppers := []interface {
-			String() string
-			Stop() error
+		stoppers := []struct {
+			name string
+			Stop func() error
 		}{
-			portForwardLooper, publicIPLooper,
+			{name: "port forwarding loop", Stop: portForwardLooper.Stop},
+			{name: "public ip loop", Stop: publicIPLooper.Stop},
 		}
 		for _, stopper := range stoppers {
 			err := stopper.Stop()
 			if err != nil {
-				logger.Error(fmt.Sprintf("stopping %s: %s", stopper, err))
+				logger.Errorf("stopping %s: %s", stopper.name, err)
 			}
 		}
 	case err := <-portForwardRunError:
