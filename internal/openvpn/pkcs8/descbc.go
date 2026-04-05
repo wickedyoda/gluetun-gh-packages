@@ -34,7 +34,7 @@ func (c cipherDESCBC) OID() asn1.ObjectIdentifier {
 	return oidDESCBC
 }
 
-func (c cipherDESCBC) Encrypt(key, iv, plaintext []byte) ([]byte, error) {
+func (c cipherDESCBC) Encrypt(_, _, _ []byte) ([]byte, error) {
 	return nil, ErrEncryptDESCBCUnsupported
 }
 
